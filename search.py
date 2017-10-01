@@ -3,7 +3,7 @@ import sys
 import requests
 
 from string import Template
-# from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Configuration variables
 CLIENT_KEY = "AIzaSyCATX_cG2DgsJjFtCdgcThfR2xaH7MSMl0"
@@ -61,7 +61,7 @@ def check_relevance(items):
         relevance = raw_input("Relevant (Y/N)?")
 
         if relevance.lower() == "y":
-            relevance_counter++
+            relevance_counter += 1
             YES_DOCS.append(items[index])
         else:
             NO_DOCS.append(items[index])
@@ -74,8 +74,16 @@ def calc_precision(rel_documents):
     return rel_documents / float(10)
 
 def tfidf(docs):
-    #TODO - return a dict of word: value pairs
-    pass
+    """Return a dict of word: value pairs"""
+    word_list = []
+    for doc in docs:
+        word_list.extend(doc["title"].split())
+
+    vectorizer = TfidfVectorizer(stop_words=read_stopwords())
+    x = vectorizer.fit_transform(word_list)
+    idf = vectorizer.idf_
+    return dict(zip(vectorizer.get_feature_names(), idf))
+
 
 def tfidf_diff(yes, no):
     #TODO - returns ordered list of yes-no words
@@ -88,9 +96,12 @@ def read_stopwords():
     return words
 
 def select_new_words():
+    no_tfidf = tfidf(NO_DOCS)
+    yes_tfidf = tfidf(YES_DOCS)
+
     #TODO - selects top two (maybe more smart later ; min threshold?) that isn't in stopwords set and not already in query
     # calls tfidf and tfidf_diff and read_stopwords
-    pass
+    return []
 
 def main():
     """Main entry point for the script."""
