@@ -54,22 +54,24 @@ def query():
 def check_relevance(items):
     """Loop through results and ask for manual feedback."""
     print_results_header()
+    relevance_counter = 0
     for index in range(len(items)):
         print("Result %d" % (index + 1))
         print_result(items[index])
         relevance = raw_input("Relevant (Y/N)?")
 
         if relevance.lower() == "y":
+            relevance_counter++
             YES_DOCS.append(items[index])
         else:
             NO_DOCS.append(items[index])
 
-    print "Precision = %.1f" % (calc_precision())
-    # if PRECISION > calc_precision():
-    #     requery()
+    print "Precision = %.1f" % (calc_precision(relevance_counter))
+    if PRECISION > calc_precision(relevance_counter):
+        requery()
 
-def calc_precision():
-    return len(YES_DOCS) / float(10)
+def calc_precision(rel_documents):
+    return rel_documents / float(10)
 
 def tfidf(docs):
     #TODO - return a dict of word: value pairs
