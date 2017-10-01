@@ -3,7 +3,7 @@ import sys
 import requests
 
 from string import Template
-from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.feature_extraction.text import TfidfVectorizer
 
 CLIENT_KEY = "AIzaSyCATX_cG2DgsJjFtCdgcThfR2xaH7MSMl0"
 ENGINE_KEY = "010829534362544137562:ndji7c0ivva"
@@ -89,19 +89,26 @@ def add_to_keyword_index(item):
 
 def calc_precision():
     #TODO - number of YES divided by 10
+    pass
 
 def tfidf(docs):
     #TODO - return a dict of word: value pairs
+    pass
 
 def tfidf_diff(yes, no):
     #TODO - returns ordered list of yes-no words
+    pass
 
 def read_stopwords():
-    #TODO - returns a set
+    """Returns list of stopwords."""
+    f = open("proj1-stop.txt", "r")
+    words = f.read().split()
+    return words
 
 def select_new_words(tfidf_diffs):
     #TODO - selects top two (maybe more smart later ; min threshold?) that isn't in stopwords set and not already in query
     # calls tfidf and tfidf_diff and read_stopwords
+    pass
 
 def main():
     """Main entry point for the script."""
@@ -118,8 +125,8 @@ def main():
     if len(sys.argv) > 4: QUERY = sys.argv[4].lower()
     _QUERY = QUERY
 
-    print_parameters()
-    query()
+    # print_parameters()
+    # query()
 
 if __name__ == '__main__':
     sys.exit(main())
