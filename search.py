@@ -1,5 +1,6 @@
 import os
 import sys
+import operator
 import requests
 
 from string import Template
@@ -37,6 +38,7 @@ def print_result(item):
     print("]")
 
 def requery():
+    global QUERY
     for word in select_new_words():
         QUERY += ' ' + word
     query()
@@ -67,27 +69,35 @@ def check_relevance(items):
             NO_DOCS.append(items[index])
 
     print "Precision = %.1f" % (calc_precision(relevance_counter))
-    if PRECISION > calc_precision(relevance_counter):
+    if relevance_counter > 0 and PRECISION > calc_precision(relevance_counter):
         requery()
 
 def calc_precision(rel_documents):
     return rel_documents / float(10)
 
+def get_words(docs):
+    """Returns a list of words from the `title` and `snippet` sections"""
+    words = []
+    for doc in docs:
+        words.extend(doc["title"].split())
+        words.extend(doc["snippet"].split())
+    return words
+
 def tfidf(docs):
     """Return a dict of word: value pairs"""
-    word_list = []
-    for doc in docs:
-        word_list.extend(doc["title"].split())
-
+    words = get_words(docs)
     vectorizer = TfidfVectorizer(stop_words=read_stopwords())
-    x = vectorizer.fit_transform(word_list)
+    x = vectorizer.fit_transform(words)
     idf = vectorizer.idf_
     return dict(zip(vectorizer.get_feature_names(), idf))
 
-
-def tfidf_diff(yes, no):
-    #TODO - returns ordered list of yes-no words
-    pass
+def ordered_tfidf_diff(yes, no):
+    """Removes any words repeated between both yes and no vectors and returns a sorted list of tuples"""
+    unique_words = {}
+    for key in yes:
+        if key not in no:
+            unique_words[key] = yes[key]
+    return sorted(unique_words.items(), key=operator.itemgetter(1))
 
 def read_stopwords():
     """Returns list of stopwords."""
@@ -96,12 +106,17 @@ def read_stopwords():
     return words
 
 def select_new_words():
+    """Computes the diff between yes and no tfidf vectors and chooses the next words to add to the query"""
     no_tfidf = tfidf(NO_DOCS)
     yes_tfidf = tfidf(YES_DOCS)
+    diff = ordered_tfidf_diff(yes_tfidf, no_tfidf)
 
-    #TODO - selects top two (maybe more smart later ; min threshold?) that isn't in stopwords set and not already in query
-    # calls tfidf and tfidf_diff and read_stopwords
-    return []
+    new_words = []
+    for key in diff:
+        if len(new_words) < 2 and QUERY.find(key[0]) == -1:
+            new_words.append(key[0])
+
+    return new_words
 
 def main():
     """Main entry point for the script."""
