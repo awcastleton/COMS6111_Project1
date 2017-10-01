@@ -5,18 +5,18 @@ import requests
 from string import Template
 # from sklearn.feature_extraction.text import TfidfVectorizer
 
+# Configuration variables
 CLIENT_KEY = "AIzaSyCATX_cG2DgsJjFtCdgcThfR2xaH7MSMl0"
 ENGINE_KEY = "010829534362544137562:ndji7c0ivva"
 PRECISION = 1.0
 QUERY = "per se"
-_QUERY = "" # placeholder for original query term
 
+# Google API query template
 URL = Template("https://www.googleapis.com/customsearch/v1?key=$client_key&cx=$engine_key&q=$query")
 
-KEYWORD_MAP = {}
-
-yes_docs = None #list of json objects
-no_docs = None
+# List of json objects based on manually determined relevance
+NO_DOCS = []
+YES_DOCS = []
 
 def print_parameters():
     print("Parameters:")
@@ -37,17 +37,8 @@ def print_result(item):
     print("]")
 
 def requery():
-    global QUERY
-
-    # simply pop the top two repeating terms each time
-    sorted_keys = sorted(KEYWORD_MAP, key=KEYWORD_MAP.get, reverse=True)
-
-    # TODO - don't repeat the same top keys on subsequent searches
-
-#    for word in select_new_words(tfidf_diffs):
-#        QUERY += ' ' + word
-
-    QUERY = QUERY + " " + sorted_keys[0] + " " + sorted_keys[1]
+    for word in select_new_words():
+        QUERY += ' ' + word
     query()
 
 def query():
@@ -68,28 +59,17 @@ def check_relevance(items):
         print_result(items[index])
         relevance = raw_input("Relevant (Y/N)?")
 
-        if relevance == "Y":
-            add_to_keyword_index(items[index])
+        if relevance.lower() == "y":
+            YES_DOCS.append(items[index])
+        else:
+            NO_DOCS.append(items[index])
 
-    requery()
-
-def add_to_keyword_index(item):
-    """List of words that appear in the titles of relevant entries."""
-    global KEYWORD_MAP
-
-    words = item["title"].split()
-    for word in words:
-        word = word.lower()
-        # TODO - make this a more legitament stop-word filter
-        if len(word) > 1 and _QUERY.find(word) == -1:
-            if word in KEYWORD_MAP:
-                KEYWORD_MAP[word] = KEYWORD_MAP[word]+ 1
-            else:
-                KEYWORD_MAP[word] = 0
+    print "Precision = %.1f" % (calc_precision())
+    # if PRECISION > calc_precision():
+    #     requery()
 
 def calc_precision():
-    #TODO - number of YES divided by 10
-    pass
+    return len(YES_DOCS) / float(10)
 
 def tfidf(docs):
     #TODO - return a dict of word: value pairs
@@ -105,7 +85,7 @@ def read_stopwords():
     words = f.read().split()
     return words
 
-def select_new_words(tfidf_diffs):
+def select_new_words():
     #TODO - selects top two (maybe more smart later ; min threshold?) that isn't in stopwords set and not already in query
     # calls tfidf and tfidf_diff and read_stopwords
     pass
@@ -121,12 +101,11 @@ def main():
     global PRECISION
     if len(sys.argv) > 3: PRECISION = float(sys.argv[3])
 
-    global QUERY, _QUERY
+    global QUERY
     if len(sys.argv) > 4: QUERY = sys.argv[4].lower()
-    _QUERY = QUERY
 
-    # print_parameters()
-    # query()
+    print_parameters()
+    query()
 
 if __name__ == '__main__':
     sys.exit(main())
