@@ -1,9 +1,9 @@
+import os
 import sys
 import requests
-import os
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 from string import Template
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 CLIENT_KEY = "AIzaSyCATX_cG2DgsJjFtCdgcThfR2xaH7MSMl0"
 ENGINE_KEY = "010829534362544137562:ndji7c0ivva"
@@ -43,7 +43,7 @@ def requery():
     sorted_keys = sorted(KEYWORD_MAP, key=KEYWORD_MAP.get, reverse=True)
 
     # TODO - don't repeat the same top keys on subsequent searches
-    
+
 #    for word in select_new_words(tfidf_diffs):
 #        QUERY += ' ' + word
 
