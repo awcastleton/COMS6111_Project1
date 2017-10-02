@@ -15,7 +15,7 @@ sample linux/mac command for connecting to the VM:<br/>
 ## Running the code
 
 cd COMS6111_Project1 <br/>
-sh search.sh /<TARGET PRECISION/> '/<QUERY TERMS/>'
+sh search.sh &lt;TARGET_PRECISION&gt; '&lt;QUERY TERMS&gt;'
 
 The code will:
 * Return results one-at-a-time until 10 results have been shown
