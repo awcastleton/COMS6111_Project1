@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import os
 import sys
 import operator
@@ -134,6 +137,7 @@ def main():
 
     print_parameters()
     query()
+    print("finished")
 
 if __name__ == '__main__':
     sys.exit(main())
