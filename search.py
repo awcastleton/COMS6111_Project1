@@ -75,7 +75,7 @@ def check_relevance(items):
         else:
             NO_DOCS.append(items[index])
 
-    print "Precision = %.1f" % (calc_precision(relevance_counter))
+    print("Precision = %.1f" % (calc_precision(relevance_counter)))
     if relevance_counter > 0 and PRECISION > calc_precision(relevance_counter):
         requery()
 
