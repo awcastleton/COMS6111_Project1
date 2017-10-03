@@ -4,18 +4,18 @@ Information retrieval with user-provided relevance feedback
 
 ## Connecting to the Virtual Machine
 
-External IP: 35.185.22.146 
-user: project1
+External IP: 35.185.22.146 <br/>
+user: project1 <br/>
 password: passw0rd
 
-sample linux/mac command for connecting to the VM:
-    ssh project1@35.185.22.146
-    passw0rd
+sample linux/mac command for connecting to the VM:<br/>
+    ssh project1@35.185.22.146<br/>
+    passw0rd<br/>
 
 ## Running the code
 
-cd COMS6111_Project1
-sh search.sh <TARGET PRECISION> '<QUERY TERMS>'
+cd COMS6111_Project1 <br/>
+sh search.sh &lt;TARGET_PRECISION&gt; '&lt;QUERY TERMS&gt;'
 
 The code will:
 * Return results one-at-a-time until 10 results have been shown
