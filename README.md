@@ -14,6 +14,8 @@ sample linux/mac command for connecting to the VM:<br/>
 
 ## Running the code
 
+NOTE: executes on Python 2.7!
+
 cd COMS6111_Project1 <br/>
 sh search.sh &lt;TARGET_PRECISION&gt; '&lt;QUERY TERMS&gt;'
 
