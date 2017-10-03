@@ -54,7 +54,11 @@ def query():
     print("---")
     response = requests.get(url)
     items = response.json()["items"]
-    check_relevance(items)
+    if len(items) >= 10:
+        check_relevance(items)
+    else:
+        print("Not enough search results!")
+        print("%s results returned" % len(items))
 
 def check_relevance(items):
     """Loop through results and ask for manual feedback."""
