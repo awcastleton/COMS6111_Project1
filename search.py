@@ -106,6 +106,7 @@ def read_stopwords():
     """Returns list of stopwords."""
     f = open("proj1-stop.txt", "r")
     words = f.read().split()
+    f.close()
     return words
 
 def select_new_words():
