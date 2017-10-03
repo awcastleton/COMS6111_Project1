@@ -1,5 +1,7 @@
 # COMS6111_Project1
 
+Group: Project 1 Group 21
+
 Information retrieval with user-provided relevance feedback
 
 ## Connecting to the Virtual Machine
