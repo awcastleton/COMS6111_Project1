@@ -83,8 +83,10 @@ def check_relevance(items):
         if relevance.lower() == "y":
             relevance_counter += 1
             YES_DOCS.append(items[index])
+            log("RELEVANT")
         else:
             NO_DOCS.append(items[index])
+            log("NOT RELEVANT")
 
     print("Precision = %.1f" % (calc_precision(relevance_counter)))
     if relevance_counter > 0 and PRECISION > calc_precision(relevance_counter):
