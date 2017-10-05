@@ -153,7 +153,7 @@ def select_new_query():
             new_query.append(key[0])
             new_words.append(key[0])
 
-    # append any of the old query words that didn't come up in the documents (if any)
+    # append any of the old query words that didn't come up in the relevant documents (if any)
     for old_word in old_words:
         new_query.append(old_word)
 
