@@ -32,7 +32,7 @@ def log(s):
     print(s)
     if OUTPUT_TO_FILE:
         with open(TRANSCRIPT,"a") as t:
-            t.write(s + "\n")
+            t.write(s.encode('utf-8') + "\n")
 
 def print_parameters():
     log("Parameters:")
