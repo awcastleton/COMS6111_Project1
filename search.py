@@ -5,15 +5,21 @@ import os
 import sys
 import operator
 import requests
+import re
 
 from string import Template
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+# TODO: query transcript files
+# TODO: have it reorder the query words on requery
 
 # Configuration variables
 CLIENT_KEY = "AIzaSyCATX_cG2DgsJjFtCdgcThfR2xaH7MSMl0"
 ENGINE_KEY = "010829534362544137563:ndji7c0ivva"
 PRECISION = 1.0
 QUERY = "per se"
+OUTPUT_TO_FILE = False
+TRANSCRIPT = 'transcript.txt'
 
 # Google API query template
 URL = Template("https://www.googleapis.com/customsearch/v1?key=$client_key&cx=$engine_key&q=$query")
@@ -22,50 +28,55 @@ URL = Template("https://www.googleapis.com/customsearch/v1?key=$client_key&cx=$e
 NO_DOCS = []
 YES_DOCS = []
 
+def log(s):
+    print(s)
+    if OUTPUT_TO_FILE:
+        with open(TRANSCRIPT,"a") as t:
+            t.write(s + "\n")
+
 def print_parameters():
-    print("Parameters:")
-    print("Client key = " + CLIENT_KEY)
-    print("Engine key = " + ENGINE_KEY)
-    print("Query      = " + QUERY)
-    print("Precision  = %.1f" % (PRECISION))
+    log("Parameters:")
+    log("Client key = " + CLIENT_KEY)
+    log("Engine key = " + ENGINE_KEY)
+    log("Query      = " + QUERY)
+    log("Precision  = %.1f" % (PRECISION))
 
 def print_results_header():
-    print("Google Search Results:")
-    print("======================")
+    log("Google Search Results:")
+    log("======================")
 
 def print_result(item):
-    print("[")
-    print(" URL: " + item["link"])
-    print(" Title: " + item["title"])
-    print(" Summary: " + item["snippet"])
-    print("]")
+    log("[")
+    log(" URL: " + item["link"])
+    log(" Title: " + item["title"])
+    log(" Summary: " + item["snippet"])
+    log("]")
 
 def requery():
     global QUERY
-    for word in select_new_words():
-        QUERY += ' ' + word
+    QUERY = ' '.join(select_new_query())
     query()
 
 def query():
     """Send request to Google Custom Search endpoint."""
     url = URL.substitute(client_key = CLIENT_KEY, engine_key = ENGINE_KEY, query = QUERY)
-    print("---")
-    print(url)
-    print("---")
+    log("---")
+    log(url)
+    log("---")
     response = requests.get(url)
     items = response.json()["items"]
     if len(items) >= 10:
         check_relevance(items)
     else:
-        print("Not enough search results!")
-        print("%s results returned" % len(items))
+        log("Not enough search results!")
+        log("%s results returned" % len(items))
 
 def check_relevance(items):
     """Loop through results and ask for manual feedback."""
     print_results_header()
     relevance_counter = 0
     for index in range(len(items)):
-        print("Result %d" % (index + 1))
+        log("Result %d" % (index + 1))
         print_result(items[index])
         relevance = raw_input("Relevant (Y/N)?")
 
@@ -83,11 +94,11 @@ def calc_precision(rel_documents):
     return rel_documents / float(10)
 
 def get_words(docs):
-    """Returns a list of words from the `title` and `snippet` sections"""
+    """Returns a list of words from the `title` and `snippet` sections, discounting punctuation"""
     words = []
     for doc in docs:
-        words.extend(doc["title"].split())
-        words.extend(doc["snippet"].split())
+        words.extend(re.sub("[^\w]", " ", doc["title"]).split())
+        words.extend(re.sub("[^\w]", " ", doc["snippet"]).split())
     return words
 
 def tfidf(docs):
@@ -99,7 +110,7 @@ def tfidf(docs):
     return dict(zip(vectorizer.get_feature_names(), idf))
 
 def ordered_tfidf_diff(yes, no):
-    """Removes any words repeated between both yes and no vectors and returns a sorted list of tuples"""
+    """Returns a sorted list of words that appear in the yes vector only"""
     unique_words = {}
     for key in yes:
         if key not in no:
@@ -113,21 +124,34 @@ def read_stopwords():
     f.close()
     return words
 
-def select_new_words():
-    """Computes the diff between yes and no tfidf vectors and chooses the next words to add to the query"""
+def select_new_query():
+    """Computes the diff between yes and no tfidf vectors and chooses the new query with 2 new words included.  Reorders the words in the query as necessary"""
     no_tfidf = tfidf(NO_DOCS)
     yes_tfidf = tfidf(YES_DOCS)
     diff = ordered_tfidf_diff(yes_tfidf, no_tfidf)
 
+    # Create the new query: The old query plus two new words in descending order of calculated relevance
+    new_query = []
     new_words = []
+    old_words = QUERY.split()
     for key in diff:
-        if len(new_words) < 2 and QUERY.find(key[0]) == -1:
+        if key[0] in old_words:
+            new_query.append(key[0])
+            old_words.remove(key[0])
+        elif len(new_words) < 2 and QUERY.find(key[0]) == -1:
+            new_query.append(key[0])
             new_words.append(key[0])
 
-    return new_words
+    # append any of the old query words that didn't come up in the documents (if any)
+    for old_word in old_words:
+        new_query.append(old_word)
+
+    return new_query
 
 def main():
     """Main entry point for the script."""
+    log('==================================================================')
+    
     global CLIENT_KEY
     if len(sys.argv) > 1: CLIENT_KEY = sys.argv[1]
 
@@ -139,10 +163,13 @@ def main():
 
     global QUERY
     if len(sys.argv) > 4: QUERY = sys.argv[4].lower()
+    
+    global OUTPUT_TO_FILE
+    if len(sys.argv) > 5: OUTPUT_TO_FILE = (sys.argv[5].lower() == "true")
 
     print_parameters()
     query()
-    print("finished")
+    log('==================================================================')
 
 if __name__ == '__main__':
     sys.exit(main())
