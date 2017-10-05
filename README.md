@@ -4,6 +4,9 @@ Group: Project 1 Group 21
 
 Information retrieval with user-provided relevance feedback
 
+* Alexander Castleton: awc2134
+* Max Pugliese: jp3571
+
 ## Files Included in Submission
 
 * search.py - contains all program logic and implementation
