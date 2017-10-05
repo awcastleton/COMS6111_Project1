@@ -10,9 +10,6 @@ import re
 from string import Template
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# TODO: query transcript files
-# TODO: have it reorder the query words on requery
-
 # Configuration variables
 CLIENT_KEY = "AIzaSyCATX_cG2DgsJjFtCdgcThfR2xaH7MSMl0"
 ENGINE_KEY = "010829534362544137563:ndji7c0ivva"
@@ -28,23 +25,23 @@ URL = Template("https://www.googleapis.com/customsearch/v1?key=$client_key&cx=$e
 NO_DOCS = []
 YES_DOCS = []
 
+# logging function: prints out to file in addition to system if specified
 def log(s):
     print(s)
     if OUTPUT_TO_FILE:
         with open(TRANSCRIPT,"a") as t:
             t.write(s.encode('utf-8') + "\n")
 
+# Various printout functions
 def print_parameters():
     log("Parameters:")
     log("Client key = " + CLIENT_KEY)
     log("Engine key = " + ENGINE_KEY)
     log("Query      = " + QUERY)
     log("Precision  = %.1f" % (PRECISION))
-
 def print_results_header():
     log("Google Search Results:")
     log("======================")
-
 def print_result(item):
     log("[")
     log(" URL: " + item["link"])
@@ -52,7 +49,10 @@ def print_result(item):
     log(" Summary: " + item["snippet"])
     log("]")
 
+# Logic functions
+
 def requery():
+    """Initializes the next query"""
     global QUERY
     QUERY = ' '.join(select_new_query())
     query()
@@ -75,11 +75,16 @@ def check_relevance(items):
     """Loop through results and ask for manual feedback."""
     print_results_header()
     relevance_counter = 0
+    
+    # loop through returned documents
     for index in range(len(items)):
         log("Result %d" % (index + 1))
         print_result(items[index])
+        
+        # ask for feedback
         relevance = raw_input("Relevant (Y/N)?")
 
+        # record feedback
         if relevance.lower() == "y":
             relevance_counter += 1
             YES_DOCS.append(items[index])
@@ -89,6 +94,8 @@ def check_relevance(items):
             log("NOT RELEVANT")
 
     print("Precision = %.1f" % (calc_precision(relevance_counter)))
+
+    # Are we done?  If not, re-evaluate!
     if relevance_counter > 0 and PRECISION > calc_precision(relevance_counter):
         requery()
 
@@ -128,6 +135,8 @@ def read_stopwords():
 
 def select_new_query():
     """Computes the diff between yes and no tfidf vectors and chooses the new query with 2 new words included.  Reorders the words in the query as necessary"""
+    
+    # Get tf-idf values for our two sets of documents
     no_tfidf = tfidf(NO_DOCS)
     yes_tfidf = tfidf(YES_DOCS)
     diff = ordered_tfidf_diff(yes_tfidf, no_tfidf)
@@ -151,9 +160,10 @@ def select_new_query():
     return new_query
 
 def main():
-    """Main entry point for the script."""
+    """Main entry-point for the script."""
     log('==================================================================')
     
+    # Grab system arguments and make them global so they may be referenced anywhere
     global CLIENT_KEY
     if len(sys.argv) > 1: CLIENT_KEY = sys.argv[1]
 
